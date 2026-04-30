@@ -15,28 +15,28 @@ resource "yandex_vpc_security_group" "web_sg" {
   name        = "web-security-group"
   description = "Security group for web server"
   network_id  = yandex_vpc_network.default.id
-  
+
   ingress {
     protocol       = "TCP"
     description    = "HTTP"
     v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 80
   }
-  
+
   ingress {
     protocol       = "TCP"
     description    = "HTTPS"
     v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 443
   }
-  
+
   ingress {
     protocol       = "TCP"
     description    = "SSH"
     v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 22
   }
-  
+
   egress {
     protocol       = "ANY"
     description    = "All outbound"
@@ -53,5 +53,5 @@ module "my_first_vm" {
   subnet_id  = yandex_vpc_subnet.default.id
   cores      = 2
   memory     = 2
-  depends_on = [ yandex_vpc_security_group.web_sg ]
+  depends_on = [yandex_vpc_security_group.web_sg]
 }
