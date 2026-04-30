@@ -1,0 +1,8 @@
+*.tfvars
+*.lock.hcl
+.terraform/*
+.git/*
+*.tfstate
+HW_PIC/*
+*.fstate.backup
+*.tfstate*
