@@ -48,11 +48,11 @@ resource "yandex_vpc_security_group" "web_sg" {
 
 # 3. Используем наш модуль для создания ВМ
 module "my_first_vm" {
-  source     = "./modules/yandex_vm"
-  vm_name    = "web-server-1"
-  subnet_id  = yandex_vpc_subnet.default.id
-  cores      = 2
-  memory     = 2
-  depends_on = [yandex_vpc_security_group.web_sg]
+  source         = "./modules/yandex_vm"
+  vm_name        = "web-server-1"
+  subnet_id      = yandex_vpc_subnet.default.id
+  cores          = 2
+  memory         = 2
+  depends_on     = [yandex_vpc_security_group.web_sg]
   ssh_public_key = var.ssh_public_key
 }
