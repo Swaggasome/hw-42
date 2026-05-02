@@ -32,3 +32,7 @@ variable "public_key_path" {
   default     = "~/.ssh/id_rsa.pub"
 }
 
+variable "ssh_public_key" {
+  description = "Public SSH key content"
+  type        = string
+}
