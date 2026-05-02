@@ -30,9 +30,6 @@ jobs:
           folder_id = "${{ secrets.YC_FOLDER_ID }}"
           cloud_id = "${{ secrets.YC_CLOUD_ID }}"
           EOF
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
     
     # Checkout the repository to the GitHub Actions runner
       - name: Checkout
