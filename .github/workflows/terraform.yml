@@ -55,6 +55,7 @@ jobs:
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
   
         # On push to "master", build or change infrastructure according to Terraform configuration files
         # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
@@ -64,5 +65,6 @@ jobs:
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
         
       
