@@ -51,7 +51,7 @@ jobs:
   
       # Generates an execution plan for Terraform
       - name: Terraform Plan
-        run: terraform plan -input=false
+        run: terraform plan -input=false -out=tfplan
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
