@@ -92,7 +92,7 @@ jobs:
             -input=false \
             -out=tfplan \
             -detailed-exitcode \
-            -lock-timeout=300s
+            -lock-timeout=300s 2>&1 | tee plan_output.txt
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
@@ -139,8 +139,27 @@ jobs:
           retention-days: 1
 
       - name: Check Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
+        if: steps.plan.outcome == 'failure' || steps.plan.conclusion == 'failure'
+        run: |
+          echo "::error::Terraform plan failed with exit code ${{ steps.plan.outcome }}"
+          echo "Plan output:"
+          cat plan_output.txt
+          exit 1
+
+      - name: Check Plan Has Changes
+        if: steps.plan.outcome == 'success'
+        run: |
+          # Terraform exit codes:
+          # 0 - Success with no changes
+          # 1 - Error
+          # 2 - Success with changes
+          if [ -f plan_output.txt ]; then
+          if grep -q "No changes." plan_output.txt; then
+              echo "No changes to apply"
+          else
+              echo "Changes detected"
+          fi
+          fi
 
   terraform-apply:
     name: 'Terraform Apply'
