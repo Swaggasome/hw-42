@@ -53,7 +53,7 @@ module "my_first_vm" {
   vm_name         = "web-server-1"
   subnet_id       = yandex_vpc_subnet.default.id
   cores           = 2
-  memory          = 3
+  memory          = 4
   depends_on      = [yandex_vpc_security_group.web_sg]
   ssh_public_key  = var.ssh_public_key
   ssh_private_key = var.ssh_private_key
