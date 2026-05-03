@@ -61,7 +61,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./terraform  # If Terraform files are in subdir
+        #working-directory: ./terraform  # If Terraform files are in subdir
 
     steps:
       - name: Checkout
