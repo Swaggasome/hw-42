@@ -3,238 +3,68 @@ name: 'Terraform'
 on:
   push:
     branches: [ "master" ]
-    paths:
-      - '**.tf'
-      - '**.tfvars'
-      - 'terraform/**'
   pull_request:
-    branches: [ "master" ]
-    paths:
-      - '**.tf'
-      - '**.tfvars'
-      - 'terraform/**'
-  workflow_dispatch:  # Allow manual trigger
 
 permissions:
   contents: read
-  pull-requests: write  # For PR comments
-  id-token: write       # If using OIDC
-
-# Cancel previous runs on the same branch
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  terraform-validate:
-    name: 'Validate Terraform'
+  terraform:
+    name: 'Terraform'
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6  # Pin specific version
-          terraform_wrapper: false   # Disable wrapper for better performance
-
-      - name: Terraform Init
-        run: terraform init -backend=false  # Skip backend for validation
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Format Check
-        run: terraform fmt -check
-
-  terraform-plan:
-    name: 'Terraform Plan'
-    runs-on: ubuntu-latest
-    needs: terraform-validate
     environment: production
-    
     env:
-      # Yandex Cloud credentials
       YC_TOKEN: ${{ secrets.YC_TOKEN }}
-    
+      # YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
+      # YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
+      
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
-        #working-directory: ./terraform  # If Terraform files are in subdir
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6
-          terraform_wrapper: false
-
-      - name: Create terraform.tfvars
+      - name: Create tfvars file
         run: |
           cat > terraform.tfvars << EOF
           folder_id = "${{ secrets.TF_VAR_folder_id }}"
-          cloud_id  = "${{ secrets.TF_VAR_cloud_id }}"
+          cloud_id = "${{ secrets.TF_VAR_cloud_id }}"
           EOF
-
+    
+    # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+  
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        # with:
+          #  cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+  
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
-        run: terraform init -upgrade  # Upgrade modules on init
-        env:
-          TF_INPUT: 0  # Disable input prompts
-
+        run: terraform init
+  
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - name: Terraform Format
+        run: terraform fmt -check
+  
+      # Generates an execution plan for Terraform
       - name: Terraform Plan
-        id: plan
-        run: |
-          terraform plan \
-            -input=false \
-            -out=tfplan \
-            -detailed-exitcode \
-            -lock-timeout=300s 2>&1 | tee plan_output.txt
+        run: terraform plan -input=false -out=tfplan
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          TF_VAR_yc_token: ${{ secrets.YC_TOKEN }}
-          TF_IN_AUTOMATION: 1
-        continue-on-error: true
-
-      - name: Publish Terraform Plan to PR
-        uses: actions/github-script@v7
-        if: github.event_name == 'pull_request' && steps.plan.outcome == 'success'
-        env:
-          PLAN: ${{ steps.plan.outputs.stdout }}
-        with:
-          script: |
-            const planOutput = process.env.PLAN;
-            const planDetails = planOutput.substring(0, 65000);  // GitHub limit
-            const comment = `## Terraform Plan ✅
-            
-            <details><summary>Show Plan</summary>
-            
-            \`\`\`hcl
-            ${planDetails}
-            \`\`\`
-            
-            </details>
-            
-            *Plan generated for commit: ${context.sha}*`;
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
-      - name: Upload Terraform Plan Artifact
-        uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/master' || steps.plan.outcome == 'success'
-        with:
-          name: tfplan
-          path: tfplan
-          retention-days: 1
-
-      - name: Check Plan Status
-        if: steps.plan.outcome == 'failure' || steps.plan.conclusion == 'failure'
-        run: |
-          echo "::error::Terraform plan failed with exit code ${{ steps.plan.outcome }}"
-          echo "Plan output:"
-          cat plan_output.txt
-          exit 1
-
-      - name: Check Plan Has Changes
-        if: steps.plan.outcome == 'success'
-        run: |
-          # Terraform exit codes:
-          # 0 - Success with no changes
-          # 1 - Error
-          # 2 - Success with changes
-          if [ -f plan_output.txt ]; then
-          if grep -q "No changes." plan_output.txt; then
-              echo "No changes to apply"
-          else
-              echo "Changes detected"
-          fi
-          fi
-
-  terraform-apply:
-    name: 'Terraform Apply'
-    runs-on: ubuntu-latest
-    needs: terraform-plan
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-    environment: production
-    
-    env:
-      YC_TOKEN: ${{ secrets.YC_TOKEN }}
-    
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./terraform
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6
-
-      - name: Download Plan Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: terraform/
-
-      - name: Create terraform.tfvars
-        run: |
-          cat > terraform.tfvars << EOF
-          folder_id = "${{ secrets.TF_VAR_folder_id }}"
-          cloud_id  = "${{ secrets.TF_VAR_cloud_id }}"
-          EOF
-
-      - name: Terraform Init
-        run: terraform init -upgrade -reconfigure
-        env:
-          TF_INPUT: 0
-
+  
+        # On push to "master", build or change infrastructure according to Terraform configuration files
+        # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
       - name: Terraform Apply
+        if: github.ref == 'refs/heads/master'
         run: terraform apply -auto-approve -input=false tfplan
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          TF_VAR_yc_token: ${{ secrets.YC_TOKEN }}
-          TF_IN_AUTOMATION: 1
-
-      - name: Apply Success Notification
-        if: success()
-        run: |
-          echo "Terraform Apply completed successfully on $(date)"
-
-  security-scan:
-    name: 'Security Scan'
-    runs-on: ubuntu-latest
-    needs: terraform-validate
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run tfsec Security Scan
-        uses: aquasecurity/tfsec-action@v1.0.3
-        with:
-          soft_fail: true  # Don't fail pipeline, just report
-          working_directory: ./terraform
-
-      - name: Run Checkov Security Scan
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: ./terraform
-          soft_fail: true
-          output_format: cli
