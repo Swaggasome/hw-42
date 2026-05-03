@@ -1,11 +1,11 @@
 terraform {
   backend "s3" {
-    endpoints   =  {
+    endpoints = {
       s3 = "https://storage.yandexcloud.net"
     }
-    bucket     = "tf-state-bucket-sf-diploma"      # Имя вашего бакета
-    region     = "ru-central1-a"             # Регион
-    key        = "lab/terrafor-41.tfstate"   # Путь к файлу в бакете
+    bucket = "tf-state-bucket-sf-diploma" # Имя вашего бакета
+    region = "ru-central1-a"              # Регион
+    key    = "lab/terrafor-41.tfstate"    # Путь к файлу в бакете
 
     # Настройки для совместимости с Yandex Cloud
     skip_region_validation      = true
