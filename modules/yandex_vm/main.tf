@@ -22,6 +22,11 @@ resource "yandex_compute_instance" "vm" {
 
   metadata = {
     ssh-keys = "ubuntu:${var.ssh_public_key}"
+    userdata = <<EOF
+      #!/usr/bin/env bash
+      apt-get update -y && apt-get install apache2 -y
+      echo "Your second terraform setup, using most of interpolation. Cheers!!" > /var/www/html/index.html
+      EOF
   }
 }
 
