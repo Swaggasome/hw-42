@@ -2,6 +2,7 @@ resource "yandex_compute_instance" "vm" {
   name = var.vm_name
   platform_id = var.platform_id
   zone        = "ru-central1-a"
+  allow_stopping_for_update = true
 
   resources {
     cores  = var.cores
