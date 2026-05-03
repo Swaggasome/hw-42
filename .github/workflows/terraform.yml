@@ -56,7 +56,7 @@ jobs:
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: terraform apply -auto-approve -input=false tfplan
+        run: terraform destroy -auto-approve -input=false tfplan
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
