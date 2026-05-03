@@ -36,3 +36,9 @@ variable "ssh_public_key" {
   description = "Public SSH key content"
   type        = string
 }
+
+variable "ssh_private_key" {
+  description = "Private SSH key content"
+  type        = string
+}
+

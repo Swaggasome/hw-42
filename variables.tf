@@ -13,3 +13,9 @@ variable "ssh_public_key" {
   type        = string
   sensitive   = true
 }
+
+variable "ssh_private_key" {
+  description = "Private SSH key content"
+  type        = string
+  sensitive   = true
+}

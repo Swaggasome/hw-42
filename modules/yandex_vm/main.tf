@@ -22,11 +22,21 @@ resource "yandex_compute_instance" "vm" {
 
   metadata = {
     ssh-keys = "ubuntu:${var.ssh_public_key}"
-    userdata = <<EOF
-      #!/usr/bin/env bash
-      apt-get update -y && apt-get install apache2 -y
-      echo "Your second terraform setup, using most of interpolation. Cheers!!" > /var/www/html/index.html
-      EOF
+  }
+
+  # Гарантированное выполнение после создания ВМ
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get update -y",
+      "echo 'Your second terraform setup...' | sudo tee /var/www/html/index.html"
+    ]
+    
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = var.ssh_private_key
+      host        = self.network_interface[0].nat_ip_address
+    }
   }
 }
 
