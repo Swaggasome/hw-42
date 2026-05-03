@@ -56,4 +56,5 @@ module "my_first_vm" {
   memory         = 2
   depends_on     = [yandex_vpc_security_group.web_sg]
   ssh_public_key = var.ssh_public_key
+  ssh_private_key = var.ssh_private_key
 }
