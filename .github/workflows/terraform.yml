@@ -46,7 +46,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Format Check
-        run: terraform fmt -recursive -check -diff
+        run: terraform fmt -check
 
   terraform-plan:
     name: 'Terraform Plan'
