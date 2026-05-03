@@ -97,3 +97,4 @@ jobs:
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
           TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
