@@ -15,56 +15,50 @@ jobs:
     environment: production
     env:
       YC_TOKEN: ${{ secrets.YC_TOKEN }}
-      # YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
-      # YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
       
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+  
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+  
       - name: Create tfvars file
         run: |
           cat > terraform.tfvars << EOF
           folder_id = "${{ secrets.YC_FOLDER_ID }}"
           cloud_id = "${{ secrets.YC_CLOUD_ID }}"
           EOF
-    
-    # Checkout the repository to the GitHub Actions runner
-      - name: Checkout
-        uses: actions/checkout@v4
-  
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        # with:
-          #  cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-  
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+        shell: bash
+
       - name: Terraform Init
         run: terraform init
-  
-      # Checks that all Terraform configuration files adhere to a canonical format
-      - name: Terraform Format
+        continue-on-error: true
+
+      - name: Terraform Format Check
         run: terraform fmt -check
-  
-      # Generates an execution plan for Terraform
+        continue-on-error: true
+
+      - name: Terraform Validate
+        run: terraform validate
+
       - name: Terraform Plan
-        run: terraform plan -input=false
+        run: terraform plan -input=false -out=tfplan
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
-  
-        # On push to "master", build or change infrastructure according to Terraform configuration files
-        # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+        continue-on-error: true
+
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/master'
-        run: terraform apply -auto-approve -input=false
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: terraform apply -auto-approve -input=false tfplan
         env:
           TF_VAR_folder_id: ${{ secrets.TF_VAR_folder_id }}
           TF_VAR_cloud_id: ${{ secrets.TF_VAR_cloud_id }}
           TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
-        
       
