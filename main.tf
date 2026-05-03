@@ -1,6 +1,7 @@
 # 1. Создаем сеть
 resource "yandex_vpc_network" "default" {
   name = "lab-network"
+  folder_id = var.folder_id
 }
 
 # 2. Создаем подсеть
