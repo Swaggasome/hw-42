@@ -30,8 +30,8 @@ jobs:
       - name: Create tfvars file
         run: |
           cat > terraform.tfvars << EOF
-          folder_id = "${{ secrets.YC_FOLDER_ID }}"
-          cloud_id = "${{ secrets.YC_CLOUD_ID }}"
+          folder_id = "${{ secrets.TF_VAR_folder_id }}"
+          cloud_id = "${{ secrets.TF_VAR_cloud_id }}"
           EOF
         shell: bash
 
