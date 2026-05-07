@@ -186,7 +186,7 @@ resource "yandex_compute_instance_group" "app_group" {
       measurement_duration   = 60         # Длительность измерения метрик (сек)
       warmup_duration        = 0          # Время на прогрев новой ВМ
       stabilization_duration = 300        # Время стабилизации перед снижением числа ВМ (сек)
-      initial_size           = 2          # Начальное количество ВМ
+      initial_size           = 4          # Начальное количество ВМ
       auto_scale_type        = "REGIONAL" # Масштабирование по всем зонам
 
       # Кастомные правила масштабирования на основе CPU
