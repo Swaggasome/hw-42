@@ -19,4 +19,3 @@ variable "ip-address" {
   type        = string
   default     = "93.77.178.178"
 }
-
