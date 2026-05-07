@@ -14,8 +14,9 @@ variable "ssh_public_key" {
   sensitive   = true
 }
 
-variable "ssh_private_key" {
-  description = "Private SSH key content"
+variable "ip-address" {
+  description = "Static IP address"
   type        = string
-  sensitive   = true
+  default     = "93.77.178.178"
 }
+
