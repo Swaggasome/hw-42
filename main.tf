@@ -181,7 +181,7 @@ resource "yandex_compute_instance_group" "app_group" {
   # Политика масштабирования - автомасштабирование [citation:4]
   scale_policy {
     auto_scale {
-      min_zone_size          = 2          # Минимум ВМ на зону
+      min_zone_size          = 1          # Минимум ВМ на зону
       max_size               = 10         # Максимум ВМ во всех зонах
       measurement_duration   = 60         # Длительность измерения метрик (сек)
       warmup_duration        = 0          # Время на прогрев новой ВМ
