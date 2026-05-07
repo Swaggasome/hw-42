@@ -17,5 +17,5 @@ variable "ssh_public_key" {
 variable "ip-address" {
   description = "Static IP address"
   type        = string
-  default     = "93.77.178.178"
+  default     = "178.154.204.224"
 }
